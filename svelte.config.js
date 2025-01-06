@@ -1,22 +1,20 @@
-import adapter from '@sveltejs/adapter-static';
+import adapter from '@sveltejs/adapter-cloudflare';
+import preprocess from 'svelte-preprocess';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		adapter: adapter({
-			// SPA-specific options
-			pages: 'build', // Output directory for static files
-			assets: 'build', // Directory for static assets
-			fallback: 'index.html', // Use fallback for SPA behavior
-			precompress: false // Optional: Disable precompression
-		}),
+		adapter: adapter(), // Use Cloudflare adapter
 		paths: {
-			base: '', // Base path, leave empty for Cloudflare Pages
+			base: '', // Base path for deployment
 		},
 		prerender: {
-			entries: [] // Ensure no routes are pre-rendered
+			entries: [] // Disable prerendering to ensure Cloudflare handles all requests dynamically
 		}
-	}
+	},
+	preprocess: preprocess({
+		postcss: true,
+	}),
 };
 
 export default config;

@@ -3,14 +3,33 @@
 
     let email = '';
 
+    // Get the home URL from the environment variable
+    const homeUrl = import.meta.env.VITE_HOME_URL;
+
     const loginWithGoogle = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-        if (error) console.error('Error logging in with Google:', error.message);
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${homeUrl}/protected`, // Redirect to protected page after successful login
+            },
+        });
+
+        if (error) {
+            console.error('Error logging in with Google:', error.message);
+        }
     };
 
     const loginWithDiscord = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({ provider: 'discord' });
-        if (error) console.error('Error logging in with Discord:', error.message);
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'discord',
+            options: {
+                redirectTo: `${homeUrl}/protected`, // Redirect to protected page after successful login
+            },
+        });
+
+        if (error) {
+            console.error('Error logging in with Discord:', error.message);
+        }
     };
 
     const loginWithMagicLink = async () => {
@@ -19,12 +38,18 @@
             return;
         }
 
-        const { error } = await supabase.auth.signInWithOtp({ email });
+        const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+                redirectTo: `${homeUrl}/protected`, // Redirect to protected page after successful login
+            },
+        });
+
         if (error) {
             console.error('Error sending magic link:', error.message);
         } else {
-            // Redirect to /check-email after sending the magic link
-            window.location.href = '/check-email';
+            // Optionally show a confirmation message or toast here
+            console.log('Magic link sent to your email.');
         }
     };
 </script>

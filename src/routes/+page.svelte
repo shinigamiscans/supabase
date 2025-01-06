@@ -3,6 +3,7 @@
     import { onMount } from 'svelte';
 
     onMount(async () => {
+        // Ensure session fetch only runs on the client
         const { data } = await supabase.auth.getSession();
         if (data?.session) {
             // Redirect to protected if logged in

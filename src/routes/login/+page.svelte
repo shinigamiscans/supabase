@@ -2,54 +2,67 @@
     import { supabase } from '$lib/supabase';
 
     let email = '';
+    let isSending = false;
+    let isGoogleLoading = false;
+    let isDiscordLoading = false;
 
-    // Get the home URL from the environment variable
-    const homeUrl = import.meta.env.VITE_HOME_URL;
-
-    const loginWithGoogle = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: `${homeUrl}/protected`, // Redirect to protected page after successful login
-            },
-        });
-
-        if (error) {
-            console.error('Error logging in with Google:', error.message);
-        }
-    };
-
-    const loginWithDiscord = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'discord',
-            options: {
-                redirectTo: `${homeUrl}/protected`, // Redirect to protected page after successful login
-            },
-        });
-
-        if (error) {
-            console.error('Error logging in with Discord:', error.message);
-        }
-    };
-
-    const loginWithMagicLink = async () => {
+    const sendOtp = async () => {
         if (!email) {
             alert('Please enter a valid email address.');
             return;
         }
 
-        const { error } = await supabase.auth.signInWithOtp({
-            email,
-            options: {
-                redirectTo: `${homeUrl}/protected`, // Redirect to protected page after successful login
-            },
-        });
+        isSending = true;
+        try {
+            const { error } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    shouldCreateUser: false, // Prevent automatic user creation
+                },
+            });
 
-        if (error) {
-            console.error('Error sending magic link:', error.message);
-        } else {
-            // Optionally show a confirmation message or toast here
-            console.log('Magic link sent to your email.');
+            if (error) {
+                console.error('Error sending OTP:', error.message);
+                alert('Failed to send OTP. Please try again.');
+            } else {
+                console.log('OTP sent successfully.');
+                // Redirect to check-email page and pass the email in the query string
+                window.location.href = `/check-email?email=${email}`;
+            }
+        } finally {
+            isSending = false;
+        }
+    };
+
+    const loginWithGoogle = async () => {
+        isGoogleLoading = true;
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+            });
+
+            if (error) {
+                console.error('Error logging in with Google:', error.message);
+                alert('Google login failed. Please try again.');
+            }
+        } finally {
+            isGoogleLoading = false;
+        }
+    };
+
+    const loginWithDiscord = async () => {
+        isDiscordLoading = true;
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'discord',
+            });
+
+            if (error) {
+                console.error('Error logging in with Discord:', error.message);
+                alert('Discord login failed. Please try again.');
+            }
+        } finally {
+            isDiscordLoading = false;
         }
     };
 </script>
@@ -59,23 +72,33 @@
         <div class="p-6">
             <div class="text-center">
                 <h1 class="text-2xl font-bold text-white">Sign In</h1>
-                <p class="mt-2 text-sm text-neutral-400">Please choose your login method below.</p>
+                <p class="mt-2 text-sm text-neutral-400">Choose a login method below.</p>
             </div>
 
             <div class="mt-6 space-y-4">
                 <button
                     on:click={loginWithGoogle}
                     class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg bg-white text-zinc-900 hover:bg-gray-100 focus:outline-none"
+                    disabled={isGoogleLoading}
                 >
-                    <img class="w-5" src="/google-icon.svg" alt="Google Icon">
-                    Sign in with Google
+                    {#if isGoogleLoading}
+                        <span>Loading...</span>
+                    {:else}
+                        <img class="w-5" src="/google-icon.svg" alt="Google Icon">
+                        Sign in with Google
+                    {/if}
                 </button>
                 <button
                     on:click={loginWithDiscord}
                     class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg bg-white text-zinc-900 hover:bg-gray-100 focus:outline-none"
+                    disabled={isDiscordLoading}
                 >
-                    <img class="w-5" src="/discord-icon.svg" alt="Discord Icon">
-                    Sign in with Discord
+                    {#if isDiscordLoading}
+                        <span>Loading...</span>
+                    {:else}
+                        <img class="w-5" src="/discord-icon.svg" alt="Discord Icon">
+                        Sign in with Discord
+                    {/if}
                 </button>
             </div>
 
@@ -89,10 +112,15 @@
                     class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring focus:ring-blue-500"
                 />
                 <button
-                    on:click={loginWithMagicLink}
+                    on:click={sendOtp}
                     class="mt-4 w-full py-3 px-4 bg-white text-zinc-800 font-medium rounded-lg hover:bg-gray-100 focus:outline-none"
+                    disabled={isSending}
                 >
-                    Login with Magic Link
+                    {#if isSending}
+                        Sending...
+                    {:else}
+                        Send OTP
+                    {/if}
                 </button>
             </div>
         </div>

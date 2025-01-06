@@ -4,13 +4,17 @@ import adapter from '@sveltejs/adapter-static';
 const config = {
 	kit: {
 		adapter: adapter({
-			fallback: 'index.html', // Use fallback for dynamic routes
+			// SPA-specific options
+			pages: 'build', // Output directory for static files
+			assets: 'build', // Directory for static assets
+			fallback: 'index.html', // Use fallback for SPA behavior
+			precompress: false // Optional: Disable precompression
 		}),
 		paths: {
-			base: '', // If deploying under a subpath, specify it here
+			base: '', // Base path, leave empty for Cloudflare Pages
 		},
 		prerender: {
-			entries: [], // Disable automatic prerendering for all routes
+			entries: [] // Ensure no routes are pre-rendered
 		}
 	}
 };

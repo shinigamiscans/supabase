@@ -68,7 +68,7 @@
                     maxlength="1"
                     bind:value={otp[index]}
                     on:input={(e) => otp[index] = e.target.value}
-                    class="shadow-xs flex w-[64px] items-center justify-center rounded-lg border border-stroke bg-zinc-700 p-2 text-center text-2xl font-medium text-white outline-none sm:text-4xl focus:ring focus:ring-blue-500"
+                    class="shadow-xs flex w-[64px] items-center justify-center rounded-lg border border-stroke bg-zinc-700 p-2 text-center text-2xl font-medium text-white outline-none sm:text-4xl focus:ring-2 focus:ring-white"
                 />
             {/each}
         </div>

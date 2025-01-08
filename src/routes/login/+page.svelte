@@ -17,7 +17,7 @@
             const { error } = await supabase.auth.signInWithOtp({
                 email,
                 options: {
-                    shouldCreateUser: false, // Prevent automatic user creation
+                    shouldCreateUser: true, // Prevent automatic user creation
                 },
             });
 

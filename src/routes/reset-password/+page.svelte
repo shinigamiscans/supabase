@@ -41,14 +41,14 @@
 </script>
 
 <div class="flex items-center justify-center min-h-screen bg-zinc-950 text-white">
-    <div class="mt-7 bg-zinc-950 border border-zinc-700 rounded-xl shadow-lg w-96 p-6">
+    <div class="mt-7 bg-zinc-900 border border-zinc-700 rounded-xl shadow-lg w-96 p-6">
         <h1 class="text-2xl font-bold mb-4">Reset Password</h1>
 
         <input
             type="email"
             bind:value={email}
             placeholder="Your email address"
-            class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-white mb-4"
+            class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-white mb-4"
         />
 
         <button

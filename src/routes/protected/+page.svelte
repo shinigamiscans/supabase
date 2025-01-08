@@ -136,14 +136,14 @@
             <input
                 type="text"
                 bind:value={authEndpoint}
-                class="w-full py-3 px-4 bg-zinc-800 rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-white mb-6"
+                class="w-full py-3 px-4 bg-zinc-800 rounded-lg text-sm text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-white mb-6"
             />
 
             <p class="mb-4 text-sm">API Endpoint for <strong>Testing</strong> PASETO Token:</p>
             <input
                 type="text"
                 bind:value={pasetoEndpoint}
-                class="w-full py-3 px-4 bg-zinc-800 rounded-lg text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-white mb-6"
+                class="w-full py-3 px-4 bg-zinc-800 rounded-lg text-sm text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-white mb-6"
             />
 
             <!-- Send JWT Token -->

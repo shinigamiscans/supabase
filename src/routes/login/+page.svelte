@@ -1,271 +1,190 @@
 <!-- src/routes/login/+page.svelte -->
 <script>
-    import { supabase } from '$lib/supabase';
-    import { onMount } from 'svelte';
-    import toast, { Toaster } from 'svelte-5-french-toast';
+    import { supabase } from '$lib/supabase'
+    import { onMount } from 'svelte'
+    import toast, { Toaster } from 'svelte-5-french-toast'
 
-    // === Tab Control ===
-    let activeTab = 'otp'; // "otp" or "credentials"
-
-    // Read "?tab=password" from URL to switch directly to credentials tab if needed
+    let activeTab = 'social'
     onMount(() => {
-        const params = new URLSearchParams(window.location.search);
-        const tabParam = params.get('tab');
-        if (tabParam === 'password') {
-            activeTab = 'credentials';
-        }
-    });
+        const p = new URLSearchParams(window.location.search)
+        const t = p.get('tab')
+        if (t === 'password') activeTab = 'credentials'
+    })
+    function switchTab(tab) {
+        activeTab = tab
+        const u = new URL(window.location.href)
+        u.searchParams.set('tab', tab === 'credentials' ? 'password' : 'social')
+        window.history.replaceState({}, '', u)
+    }
 
-    // === Email OTP Login State ===
-    let email = '';
-    let isSending = false;           // For OTP sending
-    let isGoogleLoading = false;
-    let isDiscordLoading = false;
-    let isTwitterLoading = false;
-
-    const sendOtp = async () => {
+    let email = ''
+    let isSending = false
+    let isGoogleLoading = false
+    let isDiscordLoading = false
+    let isTwitterLoading = false
+    async function sendOtp() {
         if (!email) {
-            toast.error('Please enter a valid email address.', {
-                style: 'border-radius: 8px; background: #333; color: #fff;',
-            });
-            return;
+            toast.error('Please enter a valid email.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
+            return
         }
-
-        isSending = true;
+        isSending = true
         try {
             const { error } = await supabase.auth.signInWithOtp({
                 email,
-                options: {
-                    shouldCreateUser: true, // Automatically create user if they don't exist
-                },
-            });
-
+                options: { shouldCreateUser: true }
+            })
             if (error) {
-                console.error('Error sending OTP:', error.message);
-                toast.error('Failed to send OTP. Please try again.', {
-                    style: 'border-radius: 8px; background: #333; color: #fff;',
-                });
+                toast.error('Failed to send OTP.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
             } else {
-                console.log('OTP sent successfully.');
-                toast.success('OTP sent successfully! Check your email.', {
-                    style: 'border-radius: 8px; background: #333; color: #fff;',
-                });
-
-                // Redirect user to the /check-email page to enter OTP
+                toast.success('OTP sent. Check your email.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
                 setTimeout(() => {
-                    window.location.href = `/check-email?email=${email}`;
-                }, 2000);
+                    window.location.href = `/check-email?email=${encodeURIComponent(email)}`
+                }, 1500)
             }
         } finally {
-            isSending = false;
+            isSending = false
         }
-    };
-
-    // === OAuth ===
-    const loginWithGoogle = async () => {
-        isGoogleLoading = true;
+    }
+    async function loginWithGoogle() {
+        isGoogleLoading = true
         try {
-            const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-            if (error) {
-                console.error('Error logging in with Google:', error.message);
-                alert('Google login failed. Please try again.');
-            }
+            const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+            if (error) toast.error('Google login failed.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
         } finally {
-            isGoogleLoading = false;
+            isGoogleLoading = false
         }
-    };
-
-    const loginWithDiscord = async () => {
-        isDiscordLoading = true;
+    }
+    async function loginWithDiscord() {
+        isDiscordLoading = true
         try {
-            const { error } = await supabase.auth.signInWithOAuth({ provider: 'discord' });
-            if (error) {
-                console.error('Error logging in with Discord:', error.message);
-                alert('Discord login failed. Please try again.');
-            }
+            const { error } = await supabase.auth.signInWithOAuth({ provider: 'discord' })
+            if (error) toast.error('Discord login failed.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
         } finally {
-            isDiscordLoading = false;
+            isDiscordLoading = false
         }
-    };
-
-    const loginWithTwitter = async () => {
-        isTwitterLoading = true;
+    }
+    async function loginWithTwitter() {
+        isTwitterLoading = true
         try {
-            const { error } = await supabase.auth.signInWithOAuth({ provider: 'twitter' });
-            if (error) {
-                console.error('Error logging in with Twitter:', error.message);
-                alert('Twitter login failed. Please try again.');
-            }
+            const { error } = await supabase.auth.signInWithOAuth({ provider: 'twitter' })
+            if (error) toast.error('Twitter login failed.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
         } finally {
-            isTwitterLoading = false;
+            isTwitterLoading = false
         }
-    };
+    }
 
-    // === Username/Password Login State ===
-    let username = '';
-    let password = '';
-    let isPasswordLoginLoading = false;
-    let loginError = '';
-
-    const loginWithCredentials = async () => {
-        loginError = '';
+    let username = ''
+    let password = ''
+    let isPasswordLoginLoading = false
+    let loginError = ''
+    async function loginWithCredentials() {
+        loginError = ''
         if (!username || !password) {
-            loginError = 'Please enter both username (or email) and password.';
-            return;
+            loginError = 'Please enter email and password.'
+            return
         }
-        isPasswordLoginLoading = true;
+        isPasswordLoginLoading = true
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: username, // or "email: username" if your "username" is actually an email
-                password
-            });
+            const { data, error } = await supabase.auth.signInWithPassword({ email: username, password })
             if (error) {
-                console.error('Error logging in with credentials:', error.message);
-                loginError = 'Login failed. Please check your credentials.';
+                loginError = 'Login failed. Check your credentials.'
             } else if (data?.user) {
-                // Successfully logged in
-                window.location.href = '/protected';
+                window.location.href = '/protected'
             }
-        } catch (err) {
-            console.error('Exception logging in:', err);
-            loginError = 'An unexpected error occurred.';
         } finally {
-            isPasswordLoginLoading = false;
+            isPasswordLoginLoading = false
         }
-    };
+    }
 </script>
 
 <div class="flex items-center justify-center min-h-screen bg-zinc-950 text-white">
-    <div class="mt-7 bg-zinc-950 border border-zinc-700 rounded-xl shadow-lg w-96">
-        <!-- TAB HEADERS -->
+    <div class="mt-7 bg-zinc-900 border border-zinc-700 rounded-xl shadow-lg w-96">
         <div class="flex border-b border-zinc-700">
             <button
                 class="w-1/2 p-4 text-center hover:bg-zinc-800"
-                class:font-bold={activeTab === 'otp'}
-                on:click={() => activeTab = 'otp'}
+                class:font-bold={activeTab === 'social'}
+                class:bg-zinc-800={activeTab === 'social'}
+                on:click={() => { switchTab('social') }}
             >
-                Email OTP
+                OTP
             </button>
             <button
                 class="w-1/2 p-4 text-center hover:bg-zinc-800"
                 class:font-bold={activeTab === 'credentials'}
-                on:click={() => activeTab = 'credentials'}
+                class:bg-zinc-800={activeTab === 'credentials'}
+                on:click={() => { switchTab('credentials') }}
             >
-                Login Form
+                Password
             </button>
         </div>
-
         <div class="p-6">
-            <!-- OTP TAB -->
-            {#if activeTab === 'otp'}
-                <h2 class="text-xl font-bold text-white mb-4">Sign in with Email OTP</h2>
-
-                <!-- OAuth Buttons -->
+            {#if activeTab === 'social'}
+                <h2 class="text-xl font-bold mb-4">Sign in</h2>
                 <div class="space-y-4 mb-4">
-                    <!-- Google -->
                     <button
                         on:click={loginWithGoogle}
                         class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg bg-white text-zinc-900 hover:bg-gray-100 focus:outline-none"
                         disabled={isGoogleLoading}
                     >
-                        {#if isGoogleLoading}
-                            <span>Loading...</span>
-                        {:else}
-                            <img class="w-5" src="/google-icon.svg" alt="Google Icon" />
-                            Sign in with Google
-                        {/if}
+                        {#if isGoogleLoading} Loading... {:else} <img class="w-5" src="/google-icon.svg" alt="Google" />  Google {/if}
                     </button>
-                    <!-- Discord -->
                     <button
                         on:click={loginWithDiscord}
                         class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg bg-white text-zinc-900 hover:bg-gray-100 focus:outline-none"
                         disabled={isDiscordLoading}
                     >
-                        {#if isDiscordLoading}
-                            <span>Loading...</span>
-                        {:else}
-                            <img class="w-5" src="/discord-icon.svg" alt="Discord Icon" />
-                            Sign in with Discord
-                        {/if}
+                        {#if isDiscordLoading} Loading... {:else} <img class="w-5" src="/discord-icon.svg" alt="Discord" />  Discord {/if}
                     </button>
-                    <!-- Twitter -->
                     <button
                         on:click={loginWithTwitter}
                         class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg bg-white text-zinc-900 hover:bg-gray-100 focus:outline-none"
                         disabled={isTwitterLoading}
                     >
-                        {#if isTwitterLoading}
-                            <span>Loading...</span>
-                        {:else}
-                            <img class="w-5" src="/x-icon.svg" alt="Twitter Icon" />
-                            Sign in with Twitter
-                        {/if}
+                        {#if isTwitterLoading} Loading... {:else} <img class="w-5" src="/x-icon.svg" alt="Twitter" />  Twitter {/if}
                     </button>
                 </div>
-
-                <!-- Divider -->
                 <div class="py-4 text-xs text-neutral-500 uppercase text-center">or</div>
-
-                <!-- Email OTP Form -->
-                <div>
-                    <input
-                        type="email"
-                        placeholder="Enter your email"
-                        bind:value={email}
-                        class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-white"
-                    />
-                    <button
-                        on:click={sendOtp}
-                        class="mt-4 w-full py-3 px-4 bg-white text-zinc-800 font-medium rounded-lg hover:bg-gray-100 focus:outline-none"
-                        disabled={isSending}
-                    >
-                        {#if isSending}
-                            Sending...
-                        {:else}
-                            Send OTP
-                        {/if}
-                    </button>
-                </div>
+                <input
+                    type="email"
+                    placeholder="Enter your email"
+                    bind:value={email}
+                    class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-white"
+                />
+                <button
+                    on:click={sendOtp}
+                    class="mt-4 w-full py-3 px-4 bg-white text-zinc-800 font-medium rounded-lg hover:bg-gray-100 focus:outline-none"
+                    disabled={isSending}
+                >
+                    {#if isSending} Sending... {:else} Send OTP {/if}
+                </button>
             {/if}
-
-            <!-- USERNAME/PASSWORD TAB -->
             {#if activeTab === 'credentials'}
-                <h2 class="text-xl font-bold text-white mb-4">Login with Username/Password</h2>
-                <!-- Error -->
+                <h2 class="text-xl font-bold mb-4">Login with Password</h2>
                 {#if loginError}
-                    <p class="text-sm text-red-400 mb-2">{loginError}</p>
+                    <p class="text-sm text-red-400 mb-4">{loginError}</p>
                 {/if}
-
-                <div class="space-y-4">
-                    <input
-                        type="text"
-                        placeholder="Email or Username"
-                        bind:value={username}
-                        class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-white"
-                    />
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        bind:value={password}
-                        class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-white"
-                    />
-                    <button
-                        on:click={loginWithCredentials}
-                        class="mt-4 w-full py-3 px-4 bg-white text-zinc-800 font-medium rounded-lg hover:bg-gray-100 focus:outline-none"
-                        disabled={isPasswordLoginLoading}
-                    >
-                        {#if isPasswordLoginLoading}
-                            Logging in...
-                        {:else}
-                            Login
-                        {/if}
-                    </button>
-
-                    <!-- Forgot Password / Register Links -->
-                    <div class="flex justify-between mt-2 text-sm text-neutral-400">
-                        <a href="/reset-password" class="hover:text-neutral-200">Forgot Password?</a>
-                        <a href="/register" class="hover:text-neutral-200">Register</a>
-                    </div>
+                <input
+                    type="text"
+                    placeholder="Email"
+                    bind:value={username}
+                    class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-white mb-4"
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    bind:value={password}
+                    class="w-full py-3 px-4 bg-zinc-700 text-sm rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-white mb-4"
+                />
+                <button
+                    on:click={loginWithCredentials}
+                    class="w-full py-3 px-4 bg-white text-zinc-800 font-medium rounded-lg hover:bg-gray-100 focus:outline-none"
+                    disabled={isPasswordLoginLoading}
+                >
+                    {#if isPasswordLoginLoading} Logging in... {:else} Login {/if}
+                </button>
+                <div class="flex justify-between mt-4 text-xs text-neutral-400">
+                    <a href="/reset-password" class="hover:text-neutral-200">Forgot Password?</a>
+                    <a href="/register" class="hover:text-neutral-200">Register</a>
                 </div>
             {/if}
         </div>

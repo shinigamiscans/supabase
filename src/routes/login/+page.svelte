@@ -31,7 +31,7 @@
         try {
             const { error } = await supabase.auth.signInWithOtp({
                 email,
-                options: { shouldCreateUser: true }
+                options: { shouldCreateUser: false }
             })
             if (error) {
                 toast.error('Failed to send OTP.', { style: 'border-radius: 8px; background: #333; color: #fff;' })

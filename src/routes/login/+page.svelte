@@ -22,29 +22,67 @@
     let isGoogleLoading = false
     let isDiscordLoading = false
     let isTwitterLoading = false
-    async function sendOtp() {
-        if (!email) {
-            toast.error('Please enter a valid email.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
-            return
-        }
-        isSending = true
-        try {
-            const { error } = await supabase.auth.signInWithOtp({
-                email,
-                options: { shouldCreateUser: false }
-            })
-            if (error) {
-                toast.error('Failed to send OTP.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
-            } else {
-                toast.success('OTP sent. Check your email.', { style: 'border-radius: 8px; background: #333; color: #fff;' })
-                setTimeout(() => {
-                    window.location.href = `/check-email?email=${encodeURIComponent(email)}`
-                }, 1500)
-            }
-        } finally {
-            isSending = false
-        }
+async function sendOtp() {
+    if (!email) {
+        toast.error('Please enter a valid email.', {
+            style: {
+                borderRadius: '8px',
+                background: '#333',
+                color: '#fff',
+            },
+        });
+        return;
     }
+    isSending = true;
+    try {
+        const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: { shouldCreateUser: false },
+        });
+        if (error) {
+            // Handle specific error message for not allowing sign-ups with OTP
+            if (error.message.includes('You cannot sign up using email otp')) {
+                toast.error('Sign up is not allowed using OTP. Please use OAuth or password.', {
+                    style: {
+                        borderRadius: '8px',
+                        background: '#333',
+                        color: '#fff',
+                    },
+                });
+            } else {
+                toast.error(`Failed to send OTP: ${error.message}`, {
+                    style: {
+                        borderRadius: '8px',
+                        background: '#333',
+                        color: '#fff',
+                    },
+                });
+            }
+        } else {
+            toast.success('OTP sent. Check your email.', {
+                style: {
+                    borderRadius: '8px',
+                    background: '#333',
+                    color: '#fff',
+                },
+            });
+            setTimeout(() => {
+                window.location.href = `/check-email?email=${encodeURIComponent(email)}`;
+            }, 1500);
+        }
+    } catch (err) {
+        console.error('Unexpected error:', err);
+        toast.error('An unexpected error occurred. Please try again.', {
+            style: {
+                borderRadius: '8px',
+                background: '#333',
+                color: '#fff',
+            },
+        });
+    } finally {
+        isSending = false;
+    }
+}
     async function loginWithGoogle() {
         isGoogleLoading = true
         try {
